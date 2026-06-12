@@ -8,7 +8,7 @@ Este repositório documenta o processo que eu segui para criar minha infraestrut
 
 Antes de rodar qualquer comando, precisei criar credenciais de acesso programático no IAM. Fui no console da AWS, criei um usuário IAM e gerei uma Access Key com Access Key ID e Secret Access Key.
 
-![Credenciais IAM criadas no console da AWS](prints/print-8.png)
+![Credenciais IAM criadas no console da AWS](prints/print8.png)
 
 Depois disso, configurei as variáveis de ambiente no PowerShell para o Terraform conseguir se autenticar:
 
@@ -35,17 +35,17 @@ A ideia do `data "aws_ami"` me chamou atenção: em vez de copiar e colar um ID 
 Os prints abaixo estão em ordem cronológica, é o que eu fui rodando e o que o terminal me devolveu.
 
 
-![terraform init](prints/print-1.png)
+![terraform init](prints/print1.png)
 
-![terraform fmt](prints/print-2.png)
+![terraform fmt](prints/print2.png)
 
-![terraform validate](prints/print-3.png)
+![terraform validate](prints/print3.png)
 
-![terraform plan](prints/print-4.png)
+![terraform plan](prints/print4.png)
 
-![terraform apply com erro de Free Tier](prints/print-5.png)
+![terraform apply com erro de Free Tier](prints/print5.png)
 
-![terraform apply concluído com sucesso](prints/print-6.png)
+![terraform apply concluído com sucesso](prints/print6.png)
 
 ### Print 1 — `terraform init`
 
@@ -77,7 +77,30 @@ O tutorial pedia `t2.micro`, que era o tipo clássico do free tier, mas na minha
 
 Com o apply finalizado, abri o console da EC2 e lá estava a instância rodando, com a tag learn-terraform, na availability zone `us-west-2a`.
 
-![Instância EC2 rodando no console AWS](prints/print-7.png)
+![Instância EC2 rodando no console AWS](prints/print7.png)
+
+---
+
+## Publicando no GitHub
+
+Depois de tudo funcionando, criei o repositório pela interface do Cursor e tentei dar `git push` pra `main`.
+
+Eu tinha commitado tudo que estava na pasta do projeto — incluindo a pasta `.terraform/` e os arquivos `terraform.tfstate`. Só que quando rodei `terraform init`, o Terraform baixou o provider AWS pra dentro de `.terraform/`, e esse binário pesa uns 685 MB. O GitHub não aceita arquivo acima de 100 MB, então o push foi rejeitado:
+
+> File .terraform/providers/.../terraform-provider-aws_v5.100.0_x5.exe is 685.52 MB; this exceeds GitHub's file size limit of 100.00 MB
+
+![Erro no git push — arquivo do provider muito grande](prints/print9.png)
+
+
+| Arquivo/pasta | Por quê não commitar |
+|---------------|----------------------|
+| `.terraform/` | Providers baixados localmente pelo `terraform init` — cada pessoa baixa o seu |
+| `*.tfstate` | Estado da infraestrutura, pode ter dados sensíveis e é específico do seu ambiente |
+| `*.tfvars` | Pode conter secrets (credenciais, senhas) |
+
+Criei um `.gitignore` com essas exclusões, tirei os arquivos grandes do commit e rodei o push de novo. Dessa vez foi.
+
+![Push pro GitHub concluído com sucesso](prints/print10.png)
 
 ---
 
@@ -98,7 +121,7 @@ O console continua sendo útil, mas Infrastructure as Code traz algumas vantagen
 ├── terraform.tf          # Versão do Terraform e provider AWS
 ├── main.tf               # Provider, data source da AMI e instância EC2
 ├── .terraform.lock.hcl   # Lock das versões dos providers
-├── terraform.tfstate     # Estado local da infraestrutura criada
+└── .gitignore            # Ignora .terraform/, tfstate, etc.
 └── prints/               # Screenshots do processo
 ```
 
