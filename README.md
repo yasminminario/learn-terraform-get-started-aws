@@ -71,13 +71,37 @@ Confirmei com `yes` e a criação falhou. A AWS retornou:
 
 O tutorial pedia `t2.micro`, que era o tipo clássico do free tier, mas na minha conta isso não funcionou por causa das mudanças no programa de Free Tier da AWS para contas mais novas. Não era problema de credencial nem de configuração do Terraform, era o tipo de instância que a AWS não aceitava no meu cenário.
 
+### Print 6 — `terraform apply` (segunda tentativa — sucesso)
+
+Troquei o `instance_type` de `t2.micro` para `t3.micro` no `main.tf` e rodei `terraform apply` novamente. Dessa vez a instância foi criada com sucesso na região `us-west-2`, com a mensagem `Apply complete! Resources: 1 added`.
+
 ---
 
-## Conferindo no console da AWS
+## Recursos provisionados na nuvem
 
-Com o apply finalizado, abri o console da EC2 e lá estava a instância rodando, com a tag learn-terraform, na availability zone `us-west-2a`.
+Após o `apply`, o Terraform provisionou os seguintes itens na AWS. A tabela resume o que foi criado, o print abaixo evidencia a instância rodando no console da EC2.
 
-![Instância EC2 rodando no console AWS](prints/print7.png)
+![Instância EC2 rodando no console AWS — evidência do recurso provisionado](prints/print7.png)
+
+Conforme o print acima, a instância `learn-terraform` aparece no console da EC2 com status em execução, confirmando que o Terraform criou o recurso na nuvem conforme definido no `main.tf`.
+
+### Inspecionando o state (`terraform state list` e `terraform show`)
+
+Depois do provisionamento, usei os comandos abaixo para conferir o que o Terraform registrou no arquivo de estado local (`terraform.tfstate`):
+
+```powershell
+terraform state list
+terraform show
+```
+
+O `state list` listou os dois itens rastreados no workspace:
+
+```
+data.aws_ami.ubuntu
+aws_instance.app_server
+```
+
+O `terraform show` exibiu os atributos completos da instância provisionada, incluindo tipo `t3.micro`, IP público, subnet, security group e volume EBS de 8 GB (`gp3`). Esse state é o que o Terraform usa nas próximas execuções de `plan` e `apply` para comparar o código com a infraestrutura real.
 
 ---
 
@@ -121,7 +145,7 @@ O console continua sendo útil, mas Infrastructure as Code traz algumas vantagen
 ├── terraform.tf          # Versão do Terraform e provider AWS
 ├── main.tf               # Provider, data source da AMI e instância EC2
 ├── .terraform.lock.hcl   # Lock das versões dos providers
-└── .gitignore            # Ignora .terraform/, tfstate, etc.
+├── .gitignore            # Ignora .terraform/, tfstate, etc.
 └── prints/               # Screenshots do processo
 ```
 
