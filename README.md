@@ -1,4 +1,4 @@
-# Provisionando minha primeira instância EC2 com Terraform
+# Provisionando instância EC2 com Terraform
 
 Este repositório documenta o processo que eu segui para criar minha infraestrutura na AWS usando Terraform.
 
